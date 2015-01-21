@@ -6,24 +6,15 @@ use Imager;
 use bigint;
 use GD;
 use bytes;
-#use Image::Size
+use Image::Size;
 
-my $image = new GD::Image('dilma.jpg') or die;
+my $imagem = new GD::Image('dilma.jpg') or die;
+my ($width_x, $height_y) = imgsize("dilma.jpg");
 
-#my ($junda_x,$junda_y)= imgsize("dilma.jpg");
-#print $junda_x." ";
-#print $junda_y."\n"
-
-#my $img= Imager->new;
-#my $filename = "dilma.jpg";
-#my $type = ".png";
-
-#$img->read( file=>$filename)
-#	or die "Cannot read: ", $img->errstr;
-
-#print $img->get_file_limits();
-#print $max_width." ";
-#print $max_height;
+my $img= Imager->new;
+my $filename = "dilma.jpg";
+$img->write( file=>$filename)
+	or die "Cannot read: ", $img->errstr;
 
 sub getBit{
 	my $input = $_[0];
@@ -80,8 +71,8 @@ sub encodeData{
         my $gEnc = &getBit($data,2);
         my $bEnc = (&getBit($data,4) << 1) | &getBit($data,3);
 	
-	my $index = $image->getPixel($posX,$posY);
-	(my $r,my $g,my $b)=$image->rgb($index);
+	my $index = $imagem->getPixel($posX,$posY);
+	(my $r,my $g,my $b)=$imagem->rgb($index);
 
 	$r = ((($r)&0xFF)>>2)<<2;
         $g = ((($g)&0xFF)>>1)<<1;
@@ -95,15 +86,15 @@ sub encodeData{
 	@arrayRGB = $newB;
 	
 	
-	$image->setPixel($posX,$posY,@arrayRGB);
+	$imagem->setPixel($posX,$posY,@arrayRGB);
 }
-
+ 
 sub decodeData{
 	my $posX = $_[0];
 	my $posY = $_[1];
 
-	my $index = $image->getPixel($posX,$posY);
-        (my $r,my $g,my $b)=$image->rgb($index);
+	my $index = $imagem->getPixel($posX,$posY);
+        (my $r,my $g,my $b)=$imagem->rgb($index);
 
 	$r = $r & 0xFF;
         $g = $g & 0xFF;
@@ -137,8 +128,34 @@ sub readChar{
 }
 
 sub encodeMessage{
-	my $message = $_; #string é escalar!!!
+	my $message = $_[0]; #string é escalar!!!
+#	print $message;
+	if(bytes::length($message) + 5 >= $width_x * $height_y){print "Erro: Figura pequena para o texto, máximo ".$width_x * $height_y." caracteres para essa imagem."}
 
-#	if(bytes::length($message) + 5 >= $image.)
+	my $salt = ",.!.,";
+	my $string = $message . $salt;
+	my @chars = split("",$string);
+	my $posX=0; my $posY=0;
+	my $pos=0;
+
+	for(my $i=0; $i < (bytes::length($message)+5);$i++){
+		if(&writeChar($chars[$i],$posX,$posY)){
+			$posX++;
+			print "Passei: ".$pos++;
+			if($posX >= $width_x){$posX=0;$posY++; }
+		}
+	}
+	
 }
 
+sub getMessage{
+
+	my $string="";
+	for(my $pos_y = 0 ; $pos_y< $height_y ; $pos_y++ ){
+		for(my $pos_x=0; $pos_x<$width; $pos_x++){
+			$string .= &readChar($pos_x,$pos_y);
+			if
+		}
+	}
+}
+encodeMessage("junda");
